@@ -1,0 +1,18 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+C:/Users/Melvyn/Desktop/Cours/Drive/HEIG_VD/3em semestre/PLP/Labo12/PLP_Compliateur/Compilteur/main.cpp
+iomanip
+-
+iostream
+-
+fstream
+-
+string
+-
+

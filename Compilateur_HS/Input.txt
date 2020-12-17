@@ -1,0 +1,1 @@
+(If (Cst 1) (Bin '*' (Cst 3) (Cst 2)) (Cst 1))
