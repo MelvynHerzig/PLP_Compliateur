@@ -70,20 +70,20 @@ compile map code codeLen (Prg ( def@(FDef n _ _ ):defs) exp) = compile newMap (c
     where
         (cfFirst, cfLen, _, newMap) = compileFDef def ((n,codeLen+2):map) 0 -- + 2 en prévision du jump Int.
 
-
 startCompilation = do 
                    content <- readFile "Input.txt"
                    let code = compile [] [] 0 $ parser $ lexer $ content
                    putStrLn $ show code
                    printPrg code
-               
 
+-- Ecrit le code du programme dans un fichier               
 printPrg [] = return ()
 printPrg (i:is) = do
                     handle <- openFile "Prog.txt" WriteMode
                     printArray handle (i:is)
                     hClose handle
 
+-- Ecrit un tableau dans le handle passé en paramètre.
 printArray handle [] = return()
 printArray handle (i:is) = do 
                             hPutStr handle $ show i ++ "\n"
