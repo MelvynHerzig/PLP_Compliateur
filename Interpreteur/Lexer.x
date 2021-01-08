@@ -22,7 +22,7 @@ tokens :-
  else                   { \s -> TElse}
  define                 { \s -> TDefine}
  $digit+                { \s -> TInt (read s) }
- [\=\+\*\-\/\<\#]       { \s -> TSym (head s) }
+ [\=\+\*\-\/]           { \s -> TSym (head s) }
  $low{1}$alphaNum*      { \s -> TVarName s }
  $up{1}$alphaNum*       { \s -> TFunName s}
  [\(]                   { \s -> TOp}

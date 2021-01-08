@@ -4,9 +4,14 @@ where
 import System.IO
 import Parser
 import Lexer
+----------------------------------------
+-- Constructeur des instructions SAM
+----------------------------------------
+data Instruction = JUMP Int | CALL Int | UNLK| EXIT Int| ADD | DOT | HALT | INT Int | JMP Int | JZR Int | LINK Int | LOAD Int | MPY | STORE Int | SUB deriving Show
 
-data Instruction = ADD | DOT | HALT | INT Int | JMP Int | JZR Int | LINK Int | LOAD Int | MPY | STORE Int | SUB deriving Show
-
+----------------------------------------
+-- Compilation des expressions
+----------------------------------------
 compileExp :: Exp -> [(Name, Int)] -> Int -> ([Instruction], Int, Int)
 compileExp (Cst int) _ _ = ([INT int], 2, 0)
 compileExp (Bin op xLeft xRight) map vars = (cLeft ++ cRight ++ [opCode], lLeft+lRight+1, max vLeft vRight)
@@ -24,16 +29,53 @@ compileExp (If xCond xThen xElse) map vars = (code, lCond+lThen+lElse+4, max vCo
         (cElse, lElse, vElse) = compileExp xElse map vars
         code = cCond ++ (JZR $ lThen + 2):cThen ++ (JMP $ lElse):cElse
 
-compile xExp = cExp ++ [DOT,HALT]
-     where
-        (cExp, _, _) = compileExp xExp [] 0
+compileExp (Let name eqExp inExp) map vars = (code, eqLength+inLength+2, max eqVars (inVars + 1))
+    where
+        (eqCode, eqLength, eqVars) = compileExp eqExp map vars
+        (inCode, inLength, inVars) = compileExp inExp ((name,vars+1):map) (vars+1)
+        code = eqCode ++ (STORE $ vars+1):inCode 
 
-list [] = return ()
-list (i:is) = do { putStrLn $ show i ; list is }
+compileExp (Var name) map _ = ([LOAD $ offset name map], 2, 0) 
 
-compilePrg = do 
-                content <- readFile "Input.txt"
-                putStr $ show content
+compileExp (FApp name seq) map vars = (sCode ++ [CALL $ offset name map], sLength+2, sVars)
+    where
+        (sCode, sLength, sVars) = compileSeq seq map vars
+
+compileFDef (FDef func args body) map _ = (code, bLength+7, 0, map)
+    where
+        nargs = length args
+        (bCode, bLength, bVars) = compileExp body (zip args [-nargs-1..] ++ map) 0
+        code = LINK bVars:bCode ++ [STORE $ (-nargs)-1, UNLK, EXIT (nargs-1)] 
+
+-- Retourne l'offset d'une variable ou l'adresse d'une fonction
+offset _ [] = error "Variable/fonction inconnue."
+offset name ((key,val):map)
+ | name == key = val
+ | otherwise = offset name map 
+
+compileSeq [] _ _ = ([], 0, 0)
+compileSeq (exp:exps) map vars = (hCode ++ tCode, hLength+tLength, max hVars tVars)
+    where
+        (hCode, hLength, hVars) = compileExp exp map vars
+        (tCode, tLength, tVars) = compileSeq exps map vars
+
+---------------------------------------------------
+--            Compilation du programme
+---------------------------------------------------
+compile map code codeLen (Prg [] exp) = (JUMP codeLen):code ++ (LINK vars): cExp ++ [DOT,HALT]
+    where
+        (cExp, length , vars) = compileExp exp map 0
+
+compile map code codeLen (Prg ( def@(FDef n _ _ ):defs) exp) = compile newMap (code++cfFirst) (cfLen+codeLen) (Prg defs exp)
+    where
+        (cfFirst, cfLen, _, newMap) = compileFDef def ((n,codeLen+2):map) 0 -- + 2 en prévision du jump Int.
+
+
+startCompilation = do 
+                   content <- readFile "Input.txt"
+                   let code = compile [] [] 0 $ parser $ lexer $ content
+                   putStrLn $ show code
+                   printPrg code
                
 
 printPrg [] = return ()
