@@ -7,14 +7,14 @@ using namespace std;
 
 enum Instruction {
     // Instructions nullaires.
-    HALT,  ADD,   DOT,   MPY,   SUB,   UNLK , UNARY,
+    HALT,  ADD,   DOT,   MPY,   SUB,   UNLK ,  CMP, UNARY,
     // Instructions unaires
     CALL,  EXIT,  INT,   JMP,   JZR,   LINK,  LOAD, STORE,
     MAX_INSTRUCTIONS
 };
 
 string mnemonics[MAX_INSTRUCTIONS] = {
-        "HALT",  "ADD",    "DOT",    "MPY",   "SUB",   "UNLK",   "",
+        "HALT",  "ADD",    "DOT",    "MPY",   "SUB",   "UNLK", "CMP", "UNARY",
         "CALL",  "EXIT",   "INT",    "JMP",   "JZR",   "LINK",   "LOAD",   "STORE"
 };
 
@@ -72,41 +72,110 @@ void run(bool trace)
         switch (code[ip++]) {
 
             case DOT:
+            {
                 accumulator = stack[--sp];
                 io = true;
                 break;
+            }
 
             case INT:
+            {
                 stack[sp++] = code[ip++];
                 break;
+            }
 
             case JZR:
-                if (stack[--sp] == 0)
-                    ip = ip + code[ip];
+            {
+                if (stack[--sp] == 0) // Modifie l'IP si le sommet de la pile est nul
+                {
+                    ip += code[ip];
+                }
+
                 ip++;
                 break;
 
+            }
+
             case JMP:
-                ip = ip + code[ip] + 1;
+            {
+                ip += code[ip] + 1;
                 break;
 
+            }
+
             case MPY:
+            {
                 accumulator = stack[--sp]; // Prend les opérandes sur la pile, empile le résultat
                 accumulator *= stack[--sp];
                 stack[sp++] = accumulator;
                 break;
+            }
 
             case ADD:
+            {
                 accumulator = stack[--sp]; // Prend les opérandes sur la pile, empile le résultat
                 accumulator += stack[--sp];
                 stack[sp++] = accumulator;
                 break;
+            }
 
             case SUB:
-                accumulator = stack[--sp]; // Prend les opérandes sur la pile, empile le résultat
-                accumulator -= stack[--sp];
+            {
+                accumulator = -stack[--sp]; // Prend les opérandes sur la pile, empile le résultat
+                accumulator += stack[--sp];
                 stack[sp++] = accumulator;
                 break;
+            }
+
+            case CMP:
+            {
+                accumulator = stack[--sp]; // Prend les opérandes sur la pile, empile le résultat
+                accumulator = stack[--sp] < accumulator ? 1 : 0;
+                stack[sp++] = accumulator;
+                break;
+            }
+
+            case UNLK:
+            {
+                sp = fp + 1;
+                fp = stack[--sp];
+                break;
+            }
+
+            case LINK:
+            {
+                stack[sp++] = fp;
+                fp = sp - 1;
+                sp += code[ip++];
+                break;
+            }
+
+            case CALL:
+            {
+                stack[sp++] = ip + 1;
+                ip = code[ip];
+                break;
+            }
+
+            case EXIT:
+            {
+                int temp = ip;
+                ip = stack[--sp];
+                sp -= code[temp];
+            }
+                break;
+
+            case LOAD:
+            {
+                stack[sp++] = stack[fp + code[ip++]];
+                break;
+            }
+
+            case STORE:
+            {
+                stack[fp + code[ip++]] = stack[--sp];
+                break;
+            }
 
             default:
                 cout << "Error : Unrecognized opcode : " << code[ip-1] << '\n';

@@ -7,7 +7,7 @@ import Lexer
 ----------------------------------------
 -- Constructeur des instructions SAM
 ----------------------------------------
-data Instruction = JUMP Int | CALL Int | UNLK| EXIT Int| ADD | DOT | HALT | INT Int | JMP Int | JZR Int | LINK Int | LOAD Int | MPY | STORE Int | SUB deriving Show
+data Instruction = JUMP Int | CALL Int | UNLK| EXIT Int| ADD | DOT | HALT | INT Int | JMP Int | JZR Int | LINK Int | LOAD Int | MPY | STORE Int | SUB | CMP deriving Show
 
 ----------------------------------------
 -- Compilation des expressions
@@ -19,8 +19,12 @@ compileExp (Bin op xLeft xRight) map vars = (cLeft ++ cRight ++ [opCode], lLeft+
      opCode = case op of '+' -> ADD
                          '-' -> SUB
                          '*' -> MPY
+                         '<' -> CMP
      (cLeft, lLeft, vLeft ) = compileExp xLeft map vars
      (cRight, lRight, vRight) = compileExp xRight map vars
+
+compileExp (Una op xExp) map vars = case op of '+' -> compileExp (Bin '+' (Cst 0) xExp) map vars
+                                               '-' -> compileExp (Bin '-' (Cst 0) xExp) map vars
 
 compileExp (If xCond xThen xElse) map vars = (code, lCond+lThen+lElse+4, max vCond $ max vThen vElse)
     where
@@ -62,7 +66,7 @@ compileSeq (exp:exps) map vars = (hCode ++ tCode, hLength+tLength, max hVars tVa
 ---------------------------------------------------
 --            Compilation du programme
 ---------------------------------------------------
-compile map code codeLen (Prg [] exp) = (JUMP codeLen):code ++ (LINK vars): cExp ++ [DOT,HALT]
+compile map code codeLen (Prg [] exp) = (JMP codeLen):code ++ (LINK vars): cExp ++ [DOT,HALT]
     where
         (cExp, length , vars) = compileExp exp map 0
 
@@ -71,7 +75,7 @@ compile map code codeLen (Prg ( def@(FDef n _ _ ):defs) exp) = compile newMap (c
         (cfFirst, cfLen, _, newMap) = compileFDef def ((n,codeLen+2):map) 0 -- + 2 en prévision du jump Int.
 
 startCompilation = do 
-                   content <- readFile "Input.txt"
+                   content <- readFile "input.txt"
                    let code = compile [] [] 0 $ parser $ lexer $ content
                    putStrLn $ show code
                    printPrg code
@@ -79,7 +83,7 @@ startCompilation = do
 -- Ecrit le code du programme dans un fichier               
 printPrg [] = return ()
 printPrg (i:is) = do
-                    handle <- openFile "Prog.txt" WriteMode
+                    handle <- openFile "codeObjet.txt" WriteMode
                     printArray handle (i:is)
                     hClose handle
 

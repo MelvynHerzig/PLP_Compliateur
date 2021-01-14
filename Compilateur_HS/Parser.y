@@ -23,6 +23,7 @@ import Lexer
  '+'    { TSym '+' }
  '-'    { TSym '-' }
  '*'    { TSym '*' }
+ '<'    { TSym '<' }
  '('    { TOp }
  ')'    { TCp }
 
@@ -30,6 +31,7 @@ import Lexer
  -- Définition des priorités et associativités
 %right in 
 %right else 
+%left '<'
 %left '+' '-'
 %left '*' '/'
 %%
@@ -49,6 +51,7 @@ Expr : let varName '=' Expr in Expr { Let $2 $4 $6 }
  | Expr '+' Expr { Bin '+' $1 $3 }
  | Expr '-' Expr { Bin '-' $1 $3 }
  | Expr '*' Expr { Bin '*' $1 $3 }
+ | Expr '<' Expr { Bin '<' $1 $3 }
  | '(' '-' Expr ')' { Una '-' $3 }
  | '(' '+' Expr ')' { Una '+' $3 }
  | integer { Cst $1 }
