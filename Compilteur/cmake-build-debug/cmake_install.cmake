@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/Melvyn/Desktop/Cours/Drive/HEIG_VD/3em semestre/PLP/Labo12/PLP_Compliateur/Compilteur
+# Install script for directory: C:/Users/melvy/Desktop/Application/Drive/HEIG_VD/3em semestre/PLP/Labo12/PLP_Compliateur/Compilteur
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -40,5 +40,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "C:/Users/Melvyn/Desktop/Cours/Drive/HEIG_VD/3em semestre/PLP/Labo12/PLP_Compliateur/Compilteur/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "C:/Users/melvy/Desktop/Application/Drive/HEIG_VD/3em semestre/PLP/Labo12/PLP_Compliateur/Compilteur/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
